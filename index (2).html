@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LKPD Perencanaan Keuangan Sederhana - Program MENYALA</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN for Visual Allocation -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- html2canvas for Exporting LKPD as Image -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- Custom Fonts & Styles -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+    }
+
+    /* Print & A4 Page Layout Optimization */
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm;
+    }
+
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-border {
+        border: 1px solid #cbd5e1 !important;
+      }
+      .print-shadow-none {
+        box-shadow: none !important;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+    }
+
+    /* Custom Scrollbar for better UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-16">
+
+  <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-xl no-print sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-center sm:text-left">
+        <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase mb-1">
+          <i class="fa-solid fa-graduation-cap"></i> Program CSR FIFGROUP PINTAR 2026
+        </div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">LKPD Perencanaan Keuangan</h1>
+        <p class="text-sky-100 text-xs sm:text-sm">Simulasi Anggaran & Cek Finansial Cerdas - Program MENYALA</p>
+      </div>
+      
+      <!-- Quick Actions Header Buttons -->
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="loadSampleData()" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition flex items-center gap-1.5" title="Isi dengan contoh data">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Contoh
+        </button>
+        <button type="button" onclick="resetForm()" class="px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition flex items-center gap-1.5" title="Reset semua data">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </button>
+        <button type="button" onclick="downloadAsImage()" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-bold rounded-xl transition shadow-lg flex items-center gap-1.5">
+          <i class="fa-solid fa-file-image"></i> Simpan Gambar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Header Printable Version Only -->
+  <div class="hidden print:block max-w-[794px] mx-auto p-4 mb-4 border-b-2 border-slate-800">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold uppercase tracking-wide">LEMBAR KERJA PESERTA DIDIK (LKPD)</h1>
+        <p class="text-sm text-slate-600">Materi: Perencanaan & Manajemen Keuangan Pribadi (Program MENYALA)</p>
+      </div>
+      <div class="text-right text-xs">
+        <p class="font-bold">FIFGROUP PINTAR 2026</p>
+        <p class="text-slate-500">Edisi Literasi Keuangan</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-[794px] mx-auto px-4 mt-6">
+    <form id="lkpdForm" onsubmit="event.preventDefault();" class="space-y-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+
+      <!-- SECTION A: Identitas Siswa -->
+      <section class="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/30 print-border print-shadow-none">
+        <h2 class="text-base font-bold text-slate-800 border-b border-slate-200 pb-2.5 mb-3 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">A</span>
+          Identitas Siswa & Sekolah
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap</label>
+            <input type="text" id="nama" placeholder="Contoh: Ahmad Rizky" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas / Jurusan</label>
+            <input type="text" id="kelas" placeholder="Contoh: XI TBSM 1" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pengerjaan</label>
+            <input type="date" id="tanggal" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition">
+          </div>
+          <div class="sm:col-span-2 md:col-span-3">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Sekolah</label>
+            <input type="text" id="sekolah" placeholder="Contoh: SMK Negeri 1 Sintang" required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm outline-none transition">
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: Input Nominal Keuangan -->
+      <section class="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/30 print-border print-shadow-none">
+        <h2 class="text-base font-bold text-slate-800 border-b border-slate-200 pb-2.5 mb-3 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">B</span>
+          Nominal Uang yang Dikelola
+        </h2>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Jumlah Total Uang (Rp)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">Rp</span>
+            <input type="number" id="jumlahUang" value="100000" min="0" step="5000" required
+              class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-bold text-base text-slate-800 outline-none transition"
+              oninput="hitungOtomatis()">
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">*Masukkan total uang jajan atau pendapatan yang hendak kamu kelola.</p>
+        </div>
+      </section>
+
+      <!-- SECTION C: Pilihan Formula Anggaran -->
+      <section class="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/30 print-border print-shadow-none">
+        <h2 class="text-base font-bold text-slate-800 border-b border-slate-200 pb-2.5 mb-3 flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">C</span>
+          Pilihan Formula Anggaran
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <!-- Option 1: 50:30:20 -->
+          <label class="cursor-pointer relative">
+            <input type="radio" name="formula" value="50:30:20" checked class="peer sr-only" onchange="hitungOtomatis()">
+            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/50 transition hover:border-slate-300 h-full">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-extrabold text-blue-700 text-base">Formula 50 : 30 : 20</span>
+                <i class="fa-solid fa-circle-check text-blue-600 opacity-0 peer-checked:opacity-100 transition"></i>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                <span class="font-bold text-slate-700">50%</span> Kebutuhan<br>
+                <span class="font-bold text-slate-700">30%</span> Keinginan<br>
+                <span class="font-bold text-slate-700">20%</span> Tabungan
+              </p>
+            </div>
+          </label>
+
+          <!-- Option 2: 40:30:20:10 -->
+          <label class="cursor-pointer relative">
+            <input type="radio" name="formula" value="40:30:20:10" class="peer sr-only" onchange="hitungOtomatis()">
+            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 transition hover:border-slate-300 h-full">
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-extrabold text-indigo-700 text-base">Formula 40 : 30 : 20 : 10</span>
+                <i class="fa-solid fa-circle-check text-indigo-600 opacity-0 peer-checked:opacity-100 transition"></i>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                <span class="font-bold text-slate-700">40%</span> Hidup | <span class="font-bold text-slate-700">30%</span> Cicilan<br>
+                <span class="font-bold text-slate-700">20%</span> Tabungan | <span class="font-bold text-slate-700">10%</span> Zakat/Infaq
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Alasan Memilih Formula Ini</label>
+          <textarea id="alasan" rows="2" placeholder="Contoh: Cocok untuk mengelola uang jajan harian tanpa kewajiban cicilan, serta menyisihkan tabungan untuk masa depan."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition"></textarea>
+        </div>
+      </section>
+
+      <!-- SECTION D: Hasil Rincian Alokasi & Chart -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 print-border print-shadow-none">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">D</span>
+            Hasil Rincian Alokasi Anggaran
+          </h2>
+          <span id="badgeFormula" class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-bold text-xs self-start sm:self-auto">
+            Formula 50:30:20
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <!-- Chart Visual Container -->
+          <div class="md:col-span-5 flex flex-col items-center justify-center p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+            <div class="w-48 h-48 relative">
+              <canvas id="allocationChart"></canvas>
+            </div>
+            <p class="text-[11px] text-slate-400 text-center mt-2">Diagram Visual Alokasi Keuangan</p>
+          </div>
+
+          <!-- Dynamic Output Breakdown Cards -->
+          <div class="md:col-span-7 space-y-3" id="hasilContainer">
+            <!-- Calculated via JS -->
+          </div>
+        </div>
+
+        <div class="mt-4 p-4 bg-slate-100 rounded-xl flex justify-between items-center font-bold text-sm text-slate-700">
+          <span>Total Ter-alokasi:</span>
+          <span id="totalNominal" class="text-blue-700 text-base font-extrabold">Rp0</span>
+        </div>
+      </section>
+
+      <!-- SECTION E: Rincian Items Pengeluaran Aktual/Rencana -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 print-border print-shadow-none">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">E</span>
+            Simulasi Rincian Pengeluaran
+          </h2>
+          <span class="text-xs text-slate-500">Tentukan item belanja kamu</span>
+        </div>
+
+        <p class="text-xs text-slate-500 mb-4">
+          Tuliskan barang atau kebutuhan konkret yang ingin kamu beli untuk memastikan total belanja tidak melebihi batas anggaran!
+        </p>
+
+        <div id="expenseTrackerContainer" class="space-y-4">
+          <!-- Dynamic category item forms inserted via JS -->
+        </div>
+      </section>
+
+      <!-- SECTION F: Refleksi & Analisis Finansial -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 print-border print-shadow-none">
+        <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-bold">F</span>
+          Refleksi & Pemahaman Diri
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">
+              1. Apakah pengeluaran kamu saat ini lebih banyak didominasi oleh Kebutuhan atau Keinginan? Berikan contohnya.
+            </label>
+            <textarea id="refleksi1" rows="2" placeholder="Jelaskan secara jujur kondisi keuangan harian kamu..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm outline-none transition"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">
+              2. Tantangan apa yang paling sering membuat kamu gagal konsisten menabung?
+            </label>
+            <textarea id="refleksi2" rows="2" placeholder="Contoh: Tergoda diskon online shop, impulsif beli jajanan kekinian, dll..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm outline-none transition"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">
+              3. Langkah konkret apa yang akan kamu lakukan jika terjadi pengeluaran darurat mendadak?
+            </label>
+            <textarea id="refleksi3" rows="2" placeholder="Contoh: Menggunakan alokasi dana darurat, mengurangi porsi jajan keinginan minggu depan..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm outline-none transition"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION G: Penilaian & Tanda Tangan (Sangat penting untuk cetak LKPD) -->
+      <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 print-border print-shadow-none">
+        <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">G</span>
+          Lembar Penilaian & Pengesahan
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
+            <h3 class="text-xs font-bold text-slate-700 mb-2 uppercase">Catatan / Umpan Balik Guru/Pendamping</h3>
+            <div class="h-20 border-b border-dashed border-slate-300 text-xs text-slate-400 p-2 italic">
+              Catatan perbaikan atau apresiasi dari fasilitator...
+            </div>
+            <div class="mt-3 flex justify-between items-center text-xs">
+              <span class="font-bold text-slate-700">Nilai Akhir LKPD:</span>
+              <span class="px-3 py-1 bg-white border border-slate-300 rounded-lg font-extrabold text-sm text-slate-800">____ / 100</span>
+            </div>
+          </div>
+
+          <!-- Signatures Box -->
+          <div class="grid grid-cols-2 gap-4 text-center text-xs">
+            <div class="flex flex-col justify-between h-32 p-2 border border-slate-200 rounded-xl bg-slate-50">
+              <p class="font-semibold text-slate-600">Siswa / Peserta</p>
+              <div class="border-b border-slate-400 mx-4"></div>
+              <p id="signSiswaName" class="font-bold text-slate-800">( .................................... )</p>
+            </div>
+            <div class="flex flex-col justify-between h-32 p-2 border border-slate-200 rounded-xl bg-slate-50">
+              <p class="font-semibold text-slate-600">Guru / Fasilitator</p>
+              <div class="border-b border-slate-400 mx-4"></div>
+              <p class="font-bold text-slate-800">( .................................... )</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Buttons Footer -->
+      <div class="flex flex-col sm:flex-row gap-3 no-print pt-2">
+        <button type="button" onclick="saveToLocalStorage()" class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition shadow-lg flex justify-center items-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Progres
+        </button>
+        <button type="button" onclick="downloadAsImage()" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-lg flex justify-center items-center gap-2">
+          <i class="fa-solid fa-image"></i> Simpan / Unduh Gambar (PNG)
+        </button>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- Notification Toast Modal -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toastMsg">Pesan Notifikasi</span>
+  </div>
+
+  <script>
+    // Global State Variables
+    let myChart = null;
+    let categoryItemsMap = {};
+    let currentFormulaCategories = [];
+
+    function formatRupiah(angka) {
+      return new Intl.NumberFormat('id-ID', { 
+        style: 'currency', 
+        currency: 'IDR', 
+        maximumFractionDigits: 0 
+      }).format(angka || 0);
+    }
+
+    function showToast(message, iconClass = 'fa-circle-check text-emerald-400') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      const icon = document.getElementById('toastIcon');
+      
+      msg.innerText = message;
+      icon.className = `fa-solid ${iconClass}`;
+      
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    function downloadAsImage() {
+      showToast('Memproses gambar LKPD A4, mohon tunggu...', 'fa-spinner fa-spin text-amber-400');
+      
+      const element = document.getElementById('lkpdForm');
+      
+      // Temporarily enforce fixed A4 layout width (794px) during capture for consistent output across all devices
+      const originalWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      element.style.width = '794px';
+      element.style.maxWidth = '794px';
+      
+      html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: 1024
+      }).then(canvas => {
+        element.style.width = originalWidth;
+        element.style.maxWidth = originalMaxWidth;
+
+        const link = document.createElement('a');
+        const namaVal = document.getElementById('nama').value.trim() || 'Siswa';
+        const fileName = `LKPD_Keuangan_A4_${namaVal.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+        
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        showToast('LKPD format A4 berhasil diunduh dalam bentuk gambar PNG!', 'fa-circle-check text-emerald-400');
+      }).catch(err => {
+        element.style.width = originalWidth;
+        element.style.maxWidth = originalMaxWidth;
+        console.error('Export error:', err);
+        showToast('Gagal memproses gambar.', 'fa-circle-xmark text-rose-400');
+      });
+    }
+
+    function getFormulaItems(formulaType, inputUang) {
+      if (formulaType === '40:30:20:10') {
+        return [
+          { key: 'keb', nama: 'Kebutuhan Hidup Harian', persen: 40, color: '#10b981', bgIcon: 'bg-emerald-100 text-emerald-700', icon: 'fa-house-user' },
+          { key: 'cic', nama: 'Cicilan / Kewajiban / Modal Produktif', persen: 30, color: '#6366f1', bgIcon: 'bg-indigo-100 text-indigo-700', icon: 'fa-receipt' },
+          { key: 'tab', nama: 'Tabungan / Investasi Masa Depan', persen: 20, color: '#3b82f6', bgIcon: 'bg-blue-100 text-blue-700', icon: 'fa-chart-line' },
+          { key: 'zak', nama: 'Zakat / Infaq / Kepedulian Sosial', persen: 10, color: '#a855f7', bgIcon: 'bg-purple-100 text-purple-700', icon: 'fa-hand-holding-heart' }
+        ];
+      } else {
+        // Default 50:30:20
+        return [
+          { key: 'keb', nama: 'Kebutuhan Pokok (Makan, Bensin, Alat Tulis)', persen: 50, color: '#10b981', bgIcon: 'bg-emerald-100 text-emerald-700', icon: 'fa-burger' },
+          { key: 'kei', nama: 'Keinginan (Nongkrong, Jajan, Game)', persen: 30, color: '#f59e0b', bgIcon: 'bg-amber-100 text-amber-700', icon: 'fa-gamepad' },
+          { key: 'tab', nama: 'Tabungan & Dana Darurat', persen: 20, color: '#3b82f6', bgIcon: 'bg-blue-100 text-blue-700', icon: 'fa-piggy-bank' }
+        ];
+      }
+    }
+
+    function updateChart(labels, data, colors) {
+      const ctx = document.getElementById('allocationChart').getContext('2d');
+      
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ' ' + context.label + ': ' + formatRupiah(context.raw);
+                }
+              }
+            }
+          },
+          cutout: '68%'
+        }
+      });
+    }
+
+    function hitungOtomatis() {
+      const inputUang = parseFloat(document.getElementById('jumlahUang').value) || 0;
+      const formulaRadio = document.querySelector('input[name="formula"]:checked');
+      const formulaTerpilih = formulaRadio ? formulaRadio.value : '50:30:20';
+      const container = document.getElementById('hasilContainer');
+      const badge = document.getElementById('badgeFormula');
+      const totalSpan = document.getElementById('totalNominal');
+
+      badge.innerText = 'Formula ' + formulaTerpilih;
+      container.innerHTML = '';
+
+      const items = getFormulaItems(formulaTerpilih, inputUang);
+      currentFormulaCategories = items;
+
+      let totalAllocated = 0;
+      let chartLabels = [];
+      let chartData = [];
+      let chartColors = [];
+
+      items.forEach((item) => {
+        const nominal = (inputUang * item.persen) / 100;
+        totalAllocated += nominal;
+
+        chartLabels.push(item.nama.split('(')[0].trim());
+        chartData.push(nominal);
+        chartColors.push(item.color);
+
+        const cardHtml = `
+          <div class="p-3.5 border border-slate-200 rounded-xl bg-slate-50/60 flex items-center justify-between gap-3 transition hover:bg-slate-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl ${item.bgIcon} flex items-center justify-center font-bold text-sm shrink-0">
+                <i class="fa-solid ${item.icon}"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">${item.nama}</p>
+                <p class="text-[11px] font-semibold text-slate-400">${item.persen}% dari total budget</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-extrabold text-slate-800">${formatRupiah(nominal)}</p>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', cardHtml);
+      });
+
+      totalSpan.innerText = formatRupiah(totalAllocated);
+      updateChart(chartLabels, chartData, chartColors);
+      renderExpenseTracker(items, inputUang);
+
+      const namaVal = document.getElementById('nama').value.trim();
+      document.getElementById('signSiswaName').innerText = namaVal ? `( ${namaVal} )` : '( .................................... )';
+    }
+
+    function renderExpenseTracker(categories, totalBudget) {
+      const container = document.getElementById('expenseTrackerContainer');
+      
+      categories.forEach(cat => {
+        if (!categoryItemsMap[cat.key]) {
+          categoryItemsMap[cat.key] = [];
+        }
+      });
+
+      let html = '';
+
+      categories.forEach(cat => {
+        const limitNominal = (totalBudget * cat.persen) / 100;
+        const currentItems = categoryItemsMap[cat.key] || [];
+
+        let currentTotalUsed = currentItems.reduce((sum, item) => sum + (parseFloat(item.harga) || 0), 0);
+        let isOver = currentTotalUsed > limitNominal;
+
+        html += `
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full" style="background-color: ${cat.color}"></span>
+                <h3 class="text-xs font-bold text-slate-800 uppercase">${cat.nama}</h3>
+              </div>
+              <div id="cat-summary-${cat.key}" class="text-xs font-bold ${isOver ? 'text-rose-600' : 'text-slate-600'}">
+                Terpakai: ${formatRupiah(currentTotalUsed)} / Max ${formatRupiah(limitNominal)}
+                ${isOver ? '<span class="ml-1 text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">Melebihi Batas!</span>' : ''}
+              </div>
+            </div>
+
+            <div id="items-list-${cat.key}" class="space-y-2 mb-3">
+        `;
+
+        if (currentItems.length === 0) {
+          html += `<p id="empty-msg-${cat.key}" class="text-xs text-slate-400 italic">Belum ada rincian item pengeluaran ditambahkan.</p>`;
+        } else {
+          currentItems.forEach((item, idx) => {
+            html += `
+              <div class="flex items-center gap-2">
+                <input type="text" placeholder="Nama Barang / Kegiatan" value="${item.nama || ''}" 
+                  oninput="updateExpenseItem('${cat.key}', ${idx}, 'nama', this.value)"
+                  class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                
+                <div class="relative w-40">
+                  <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">Rp</span>
+                  <input type="number" placeholder="Nominal" value="${item.harga !== undefined && item.harga !== null ? item.harga : ''}" min="0" step="any"
+                    oninput="updateExpenseItem('${cat.key}', ${idx}, 'harga', this.value)"
+                    class="w-full pl-8 pr-2 py-1.5 rounded-lg border border-slate-300 text-xs outline-none focus:ring-1 focus:ring-blue-500 font-bold text-slate-700">
+                </div>
+
+                <button type="button" onclick="removeExpenseItem('${cat.key}', ${idx})" 
+                  class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 flex items-center justify-center text-xs transition no-print" title="Hapus Item">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+            </div>
+
+            <button type="button" onclick="addExpenseItem('${cat.key}')" 
+              class="px-3 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 no-print">
+              <i class="fa-solid fa-plus text-xs"></i> Tambah Item Belanja
+            </button>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function updateExpenseSummaryOnly(catKey) {
+      const inputUang = parseFloat(document.getElementById('jumlahUang').value) || 0;
+      const cat = currentFormulaCategories.find(c => c.key === catKey);
+      if (!cat) return;
+
+      const limitNominal = (inputUang * cat.persen) / 100;
+      const currentItems = categoryItemsMap[catKey] || [];
+      const currentTotalUsed = currentItems.reduce((sum, item) => sum + (parseFloat(item.harga) || 0), 0);
+      const isOver = currentTotalUsed > limitNominal;
+
+      const summaryEl = document.getElementById(`cat-summary-${catKey}`);
+      if (summaryEl) {
+        summaryEl.className = `text-xs font-bold ${isOver ? 'text-rose-600' : 'text-slate-600'}`;
+        summaryEl.innerHTML = `Terpakai: ${formatRupiah(currentTotalUsed)} / Max ${formatRupiah(limitNominal)} ${isOver ? '<span class="ml-1 text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">Melebihi Batas!</span>' : ''}`;
+      }
+    }
+
+    function addExpenseItem(catKey) {
+      if (!categoryItemsMap[catKey]) categoryItemsMap[catKey] = [];
+      categoryItemsMap[catKey].push({ nama: '', harga: '' });
+      hitungOtomatis();
+    }
+
+    function updateExpenseItem(catKey, index, field, value) {
+      if (categoryItemsMap[catKey] && categoryItemsMap[catKey][index] !== undefined) {
+        categoryItemsMap[catKey][index][field] = value;
+        if (field === 'harga') {
+          updateExpenseSummaryOnly(catKey);
+        }
+      }
+    }
+
+    function removeExpenseItem(catKey, index) {
+      if (categoryItemsMap[catKey]) {
+        categoryItemsMap[catKey].splice(index, 1);
+        hitungOtomatis();
+      }
+    }
+
+    function loadSampleData() {
+      document.getElementById('nama').value = 'Budi Pratama';
+      document.getElementById('kelas').value = 'XI TBSM 2';
+      document.getElementById('sekolah').value = 'SMK Negeri 1 Sintang';
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      document.getElementById('jumlahUang').value = 150000;
+      document.getElementById('alasan').value = 'Formula 50:30:20 cocok untuk menjaga porsi jajan seimbang dengan tabungan mingguan.';
+
+      categoryItemsMap = {
+        keb: [
+          { nama: 'Bensin Motor Seminggu', harga: 30000 },
+          { nama: 'Buku & Alat Tulis', harga: 20000 },
+          { nama: 'Makan Siang Kantin', harga: 25000 }
+        ],
+        kei: [
+          { nama: 'Jajan Es Kopi / Boba', harga: 20000 },
+          { nama: 'Top up Kuota Game', harga: 25000 }
+        ],
+        tab: [
+          { nama: 'Tabungan Celengan', harga: 30000 }
+        ]
+      };
+
+      document.getElementById('refleksi1').value = 'Pengeluaran saya masih imbang, tetapi terkadang jajan sore mendadak membuat porsi keinginan sedikit membengkak.';
+      document.getElementById('refleksi2').value = 'Sering tergiur diskon makanan ringan dan ajakan nongkrong teman setelah pulang sekolah.';
+      document.getElementById('refleksi3').value = 'Saya akan konsisten menyisihkan 20% langsung di awal saat menerima uang jajan, bukan menyisakan sisa belanja.';
+
+      hitungOtomatis();
+      showToast('Data contoh berhasil dimuat!');
+    }
+
+    function resetForm() {
+      document.getElementById('lkpdForm').reset();
+      categoryItemsMap = {};
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      hitungOtomatis();
+      showToast('Formulir telah direset.', 'fa-rotate-left text-amber-400');
+    }
+
+    function saveToLocalStorage() {
+      const data = {
+        nama: document.getElementById('nama').value,
+        kelas: document.getElementById('kelas').value,
+        sekolah: document.getElementById('sekolah').value,
+        tanggal: document.getElementById('tanggal').value,
+        jumlahUang: document.getElementById('jumlahUang').value,
+        formula: document.querySelector('input[name="formula"]:checked').value,
+        alasan: document.getElementById('alasan').value,
+        categoryItemsMap: categoryItemsMap,
+        refleksi1: document.getElementById('refleksi1').value,
+        refleksi2: document.getElementById('refleksi2').value,
+        refleksi3: document.getElementById('refleksi3').value,
+      };
+
+      localStorage.setItem('lkpd_menyala_data', JSON.stringify(data));
+      showToast('Progres LKPD berhasil disimpan di memori browser!');
+    }
+
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem('lkpd_menyala_data');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.nama) document.getElementById('nama').value = data.nama;
+          if (data.kelas) document.getElementById('kelas').value = data.kelas;
+          if (data.sekolah) document.getElementById('sekolah').value = data.sekolah;
+          if (data.tanggal) document.getElementById('tanggal').value = data.tanggal;
+          if (data.jumlahUang) document.getElementById('jumlahUang').value = data.jumlahUang;
+          if (data.alasan) document.getElementById('alasan').value = data.alasan;
+          if (data.refleksi1) document.getElementById('refleksi1').value = data.refleksi1;
+          if (data.refleksi2) document.getElementById('refleksi2').value = data.refleksi2;
+          if (data.refleksi3) document.getElementById('refleksi3').value = data.refleksi3;
+
+          if (data.formula) {
+            const radio = document.querySelector(`input[name="formula"][value="${data.formula}"]`);
+            if (radio) radio.checked = true;
+          }
+
+          if (data.categoryItemsMap) {
+            categoryItemsMap = data.categoryItemsMap;
+          }
+        } catch (e) {
+          console.error("Gagal memuat data tersimpan", e);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
+      
+      document.getElementById('nama').addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        document.getElementById('signSiswaName').innerText = val ? `( ${val} )` : '( .................................... )';
+      });
+
+      loadFromLocalStorage();
+      hitungOtomatis();
+    });
+  </script>
+</body>
+</html>
